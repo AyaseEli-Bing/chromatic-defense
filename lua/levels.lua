@@ -36,10 +36,18 @@ end
 local map, w, h = make_map()
 
 -- 塔类型定义
+-- 设计平衡：damage 越高 → fire_rate 越慢、cost 越高
 M.towers = {
     {id="arrow",  name="箭塔",  cost=50,  range=3,   damage=8,  fire_rate=0.6, color="#4a9eff"},
     {id="cannon", name="炮塔",  cost=100, range=2.5, damage=25, fire_rate=1.2, color="#ff6b4a", splash=1.2},
     {id="magic",  name="魔法塔", cost=150, range=4,   damage=15, fire_rate=0.8, color="#b04aff", slow=0.5},
+    -- 激光塔：所有塔中伤害最高、射程最远、攻击最慢、价格最贵
+    -- 纯单体 DPS（无溅射/无减速），与炮塔、魔法塔形成清晰的角色分工
+    -- 数值 rationale：damage 30 > cannon 25 > magic 15 > arrow 8
+    --                  range 5 > magic 4 > arrow 3 > cannon 2.5
+    --                  fire_rate 1.5（最慢，作为高伤的 trade-off）
+    --                  cost 200（最贵，无金币上限后才能稳定使用）
+    {id="laser",  name="激光塔", cost=200, range=5,   damage=30, fire_rate=1.5, color="#00ffff"},
 }
 
 -- 敌人类型

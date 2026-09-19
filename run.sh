@@ -67,15 +67,24 @@ fi
 # ---- 启动 ----
 echo ""
 echo "[3/3] 启动游戏"
-echo "  Swift App: $BIN"
-echo "  Python:    $PROJ/python/main.py"
-echo "  Web UI:    $PROJ/web/index.html"
-echo ""
+APP="$BUILD/ChromaticDefense.app"
+BIN="$BUILD/TowerDefense"
 
-# 去除 quarantine（本地构建无需签名）
-xattr -dr com.apple.quarantine "$BIN" 2>/dev/null || true
-
-# 设置环境变量，启动 Swift App
-export TD_ROOT="$PROJ"
-export DYLD_LIBRARY_PATH="/opt/homebrew/lib"
-exec "$BIN"
+if [ -d "$APP" ]; then
+    echo "  找到 .app: $APP"
+    echo "  使用 open 启动（双击效果一致）"
+    xattr -dr com.apple.quarantine "$APP" 2>/dev/null || true
+    open "$APP"
+else
+    echo "  Swift App: $BIN"
+    echo "  Python:    $PROJ/python/main.py"
+    echo "  Web UI:    $PROJ/web/index.html"
+    echo "  （如需 .app，运行: bash build_app.sh）"
+    echo ""
+    # 去除 quarantine（本地构建无需签名）
+    xattr -dr com.apple.quarantine "$BIN" 2>/dev/null || true
+    # 设置环境变量，启动 Swift App
+    export TD_ROOT="$PROJ"
+    export DYLD_LIBRARY_PATH="/opt/homebrew/lib"
+    exec "$BIN"
+fi

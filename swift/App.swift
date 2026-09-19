@@ -194,17 +194,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // 启动 Python 子进程
         startPython()
 
-        // 加载本地 HTML
-        let htmlPath = Bundle.main.bundlePath + "/../../../web/index.html"
-        var htmlURL = URL(fileURLWithPath: htmlPath)
-        // 如果不在 bundle 里，用源码路径
-        if !FileManager.default.fileExists(atPath: htmlPath) {
-            let srcPath = ProcessInfo.processInfo.environment["TD_ROOT"]
-                ?? FileManager.default.currentDirectoryPath + "/.."
-            htmlURL = URL(fileURLWithPath: srcPath + "/web/index.html")
-        }
+        // 加载本地 HTML（兼容开发模式 TD_ROOT 和 .app 模式 Bundle.resourcePath）
+        let root = AppDelegate.resourceRoot()
+        let htmlURL = URL(fileURLWithPath: root + "/web/index.html")
         NSLog("[swift] loading: \(htmlURL.path)")
-        webView.loadFileURL(htmlURL, allowingReadAccessTo: htmlURL.deletingLastPathComponent())
+        webView.loadFileURL(htmlURL, allowingReadAccessTo: URL(fileURLWithPath: root))
 
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
@@ -217,11 +211,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func startPython() {
-        let root = ProcessInfo.processInfo.environment["TD_ROOT"]
-            ?? (FileManager.default.currentDirectoryPath + "/..")
+        let root = AppDelegate.resourceRoot()
         let pyPath = root + "/python/main.py"
-        let pyExe = ProcessInfo.processInfo.environment["TD_PYTHON"]
-            ?? "/Users/bing1111/.workbuddy/binaries/python/versions/3.13.12/bin/python3"
+        let pyExe = AppDelegate.pythonExecutable()
 
         let p = Process()
         p.executableURL = URL(fileURLWithPath: pyExe)
@@ -230,6 +222,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         env["DYLD_LIBRARY_PATH"] = "/opt/homebrew/lib"
         env["PYTHONPATH"] = root + "/python"
         env["TD_ROOT"] = root
+        // 告诉 Python dylib 在哪（.app 模式: Contents/Frameworks; 开发模式: project_root/build）
+        let frameworksPath = root + "/../Frameworks"
+        if FileManager.default.fileExists(atPath: frameworksPath) {
+            env["TD_LIB_PATH"] = frameworksPath
+        } else {
+            env["TD_LIB_PATH"] = root + "/build"
+        }
+        env["TD_SCORES_DB"] = root + "/scores.db"  // 排行榜数据库路径
+        env["TD_SFX_DIR"] = root  // 音效目录
         p.environment = env
         p.standardOutput = FileHandle.standardOutput
         p.standardError = FileHandle.standardError
@@ -237,10 +238,45 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         do {
             try p.run()
             pythonProcess = p
-            NSLog("[swift] python started pid=\(p.processIdentifier)")
+            NSLog("[swift] python started pid=\(p.processIdentifier) exe=\(pyExe)")
         } catch {
             NSLog("[swift] failed to start python: \(error)")
         }
+    }
+
+    /// 资源根目录：优先 .app/Contents/Resources，其次 TD_ROOT，最后源码相对路径
+    static func resourceRoot() -> String {
+        if let r = ProcessInfo.processInfo.environment["TD_ROOT"],
+           FileManager.default.fileExists(atPath: r + "/web/index.html") {
+            return r
+        }
+        // .app 模式
+        if let bundle = Bundle.main.resourcePath,
+           FileManager.default.fileExists(atPath: bundle + "/web/index.html") {
+            return bundle
+        }
+        // 开发模式（build/ 目录中可执行文件，回溯到项目根）
+        let cwd = FileManager.default.currentDirectoryPath
+        if FileManager.default.fileExists(atPath: cwd + "/../web/index.html") {
+            return cwd + "/.."
+        }
+        return cwd
+    }
+
+    /// Python 可执行路径：TD_PYTHON > 系统 Python 3
+    static func pythonExecutable() -> String {
+        if let p = ProcessInfo.processInfo.environment["TD_PYTHON"] {
+            return p
+        }
+        let candidates = [
+            "/usr/bin/python3",
+            "/usr/local/bin/python3",
+            "/opt/homebrew/bin/python3",
+        ]
+        for c in candidates where FileManager.default.isExecutableFile(atPath: c) {
+            return c
+        }
+        return "/usr/bin/python3"
     }
 
     func applicationWillTerminate(_ notification: Notification) {

@@ -53,7 +53,7 @@ class Tower:
         return {
             "x": self.x, "y": self.y, "type": self.spec["id"],
             "name": self.spec["name"], "color": self.spec["color"],
-            "level": self.level, "range": self.range, "cooldown": self.cooldown,
+            "level": self.level, "range": self.range, "damage": self.damage, "cooldown": self.cooldown,
             "angle": self.angle,
         }
 
@@ -303,12 +303,13 @@ class Game:
             dist = math.hypot(dx, dy)
             step = speed * dt
             if dist <= step:
-                # 命中
+                # 命中：击中给即时反馈分数，击杀给大额奖励
+                self.score += 1  # 击中 +1（每次打中都有反馈，激励高 DPS）
                 p.target.hp -= p.damage
                 if p.target.hp <= 0 and not p.target.dead:
                     p.target.dead = True
                     self.gold += p.target.reward
-                    self.score += p.target.reward * 10
+                    self.score += p.target.reward * 10  # 击杀额外 +reward×10
                 # 溅射
                 if p.splash > 0:
                     for e in self.enemies:
@@ -321,6 +322,8 @@ class Game:
                                 e.dead = True
                                 self.gold += e.reward
                                 self.score += e.reward * 10
+                            else:
+                                self.score += 1  # 溅射击中 +1
                 p.dead = True
             else:
                 p.x += dx / dist * step
@@ -393,7 +396,8 @@ def handle_command(game, msg):
 
 def main():
     lua_path = os.path.join(ROOT, "lua", "levels.lua")
-    db_path = os.path.join(BUILD, "scores.db")
+    # 数据库路径：Swift 设置的 TD_SCORES_DB 优先，否则开发模式用 build/scores.db
+    db_path = os.environ.get("TD_SCORES_DB") or os.path.join(BUILD, "scores.db")
 
     # 1) 先 bind/listen——让 Swift 能立即连上，避免 connect 撞空端口被 RST
     srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -414,10 +418,13 @@ def main():
     game = Game(bridge, level, db_path)
     print(f"[python] game initialized ({time.monotonic()-t2:.2f}s)", flush=True)
     t3 = time.monotonic()
+    # 音效输出到 TD_SFX_DIR（.app 内）或开发模式 build/
+    sfx_dir = os.environ.get("TD_SFX_DIR") or BUILD
+    os.makedirs(sfx_dir, exist_ok=True)
     for name, freq, dur in [("hit", 880, 80), ("kill", 1320, 120),
                              ("build", 660, 100), ("wave", 440, 200),
                              ("lose", 200, 400), ("win", 880, 300)]:
-        bridge.beep(freq, dur, os.path.join(BUILD, f"sfx_{name}.wav"))
+        bridge.beep(freq, dur, os.path.join(sfx_dir, f"sfx_{name}.wav"))
     print(f"[python] sfx generated ({time.monotonic()-t3:.2f}s)", flush=True)
     print(f"[python] READY, total init {time.monotonic()-t0:.2f}s", flush=True)
 

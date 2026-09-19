@@ -130,19 +130,52 @@
         ctx.arc(cx, cy, t.range * CELL, 0, Math.PI * 2);
         ctx.stroke();
       }
-      // 塔体
-      ctx.fillStyle = t.color;
-      ctx.fillRect(cx - 10, cy - 10, 20, 20);
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(cx - 10, cy - 10, 20, 20);
-      // 炮管指向
-      ctx.strokeStyle = t.color;
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.lineTo(cx + Math.cos(t.angle) * 14, cy + Math.sin(t.angle) * 14);
-      ctx.stroke();
+      // 激光塔独特外观：八边形塔座 + 中央激光发射器 + 青色光晕
+      if (t.type === 'laser') {
+        // 八边形塔座（青色描边 + 半透明填充）
+        ctx.fillStyle = 'rgba(0,255,255,0.15)';
+        ctx.strokeStyle = t.color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let k = 0; k < 8; k++) {
+          const a = (k / 8) * Math.PI * 2 + Math.PI / 8;
+          const px = cx + Math.cos(a) * 11;
+          const py = cy + Math.sin(a) * 11;
+          if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        // 中央核心（脉动发光圆）
+        const pulse = 0.7 + 0.3 * Math.sin(Date.now() / 150);
+        ctx.fillStyle = `rgba(0,255,255,${pulse})`;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+        ctx.fill();
+        // 高能光束指向目标
+        ctx.strokeStyle = `rgba(0,255,255,${0.6 * pulse})`;
+        ctx.lineWidth = 3;
+        ctx.shadowColor = '#00ffff';
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(t.angle) * 16, cy + Math.sin(t.angle) * 16);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      } else {
+        // 普通塔外观（原有方块 + 炮管）
+        ctx.fillStyle = t.color;
+        ctx.fillRect(cx - 10, cy - 10, 20, 20);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(cx - 10, cy - 10, 20, 20);
+        ctx.strokeStyle = t.color;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(t.angle) * 14, cy + Math.sin(t.angle) * 14);
+        ctx.stroke();
+      }
       // 等级
       ctx.fillStyle = '#ffd700';
       ctx.font = '10px sans-serif';
@@ -194,20 +227,28 @@
     }
   }
 
-  // ===== HUD 更新 =====
-  function updateHUD() {
-    if (!state) return;
-    document.getElementById('gold').textContent = state.gold;
-    document.getElementById('lives').textContent = state.lives;
-    document.getElementById('wave').textContent = state.wave + '/' + state.total_waves;
-    document.getElementById('score').textContent = state.score;
+function fmtNum(n) {
+  // 大数字 K/M/B 格式化（不限制数值，仅优化 HUD 显示）
+  if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  return String(n);
+}
+
+// ===== HUD 更新 =====
+function updateHUD() {
+  if (!state) return;
+  document.getElementById('gold').textContent = fmtNum(state.gold);
+  document.getElementById('lives').textContent = state.lives;
+  document.getElementById('wave').textContent = state.wave + '/' + state.total_waves;
+  document.getElementById('score').textContent = fmtNum(state.score);
 
     // 塔按钮可用性
     document.querySelectorAll('.tower-btn').forEach(btn => {
       const spec = state.tower_specs.find(s => s.id === btn.dataset.tower);
       if (spec) {
         btn.classList.toggle('disabled', state.gold < spec.cost);
-        btn.querySelector('.cost').textContent = spec.cost + 'G';
+        btn.querySelector('.cost').textContent = fmtNum(spec.cost) + 'G';
       }
     });
 
@@ -234,7 +275,8 @@
         if (t) {
           info.style.display = 'block';
           info.innerHTML = '<div>' + t.name + ' Lv' + t.level + '</div>' +
-            '<div>伤害:' + Math.round(t.spec_dmg || t.damage || 0) + '</div>' +
+            '<div>伤害:' + Math.round(t.damage) + '</div>' +
+            '<div>射程:' + t.range.toFixed(1) + '</div>' +
             '<div class="btn-row">' +
             '<button onclick="window._upgrade()">升级</button>' +
             '<button onclick="window._sell()">卖出</button>' +
@@ -336,8 +378,8 @@
   function initTowerButtons() {
     const container = document.getElementById('tower-buttons');
     container.innerHTML = '';
-    // 用占位，等第一次 state 到达后填充真实数据
-    const types = ['arrow', 'cannon', 'magic'];
+    // 硬编码全部塔类型（含激光塔），等首次 state 到达后填充真实数据
+    const types = ['arrow', 'cannon', 'magic', 'laser'];
     types.forEach(id => {
       const btn = document.createElement('div');
       btn.className = 'tower-btn';
@@ -361,7 +403,7 @@
       state.tower_specs.forEach(spec => {
         const btn = document.querySelector('.tower-btn[data-tower="' + spec.id + '"]');
         if (btn) {
-          btn.innerHTML = '<span class="nm" data-ok="1">' + spec.name + '</span><span class="cost">' + spec.cost + 'G</span>';
+          btn.innerHTML = '<span class="nm" data-ok="1">' + spec.name + '</span><span class="cost">' + fmtNum(spec.cost) + 'G</span>';
         }
       });
     }

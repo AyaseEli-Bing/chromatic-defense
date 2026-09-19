@@ -52,20 +52,20 @@ def main():
     near_path_cells -= path_points
     print(f"[path] {len(near_path_cells)} empty cells adjacent to path")
 
-    # 在路径中段附近建 5 个箭塔
-    arrow = next(sp for sp in s['tower_specs'] if sp['id'] == 'arrow')
-    print(f"[tower] arrow: damage={arrow['damage']} range={arrow['range']} fire_rate={arrow['fire_rate']} cost={arrow['cost']}")
+    # 在路径中段附近建 5 个激光塔（v0.1.0 测试新增塔）
+    arrow = next(sp for sp in s['tower_specs'] if sp['id'] == 'laser')
+    print(f"[tower] laser: damage={arrow['damage']} range={arrow['range']} fire_rate={arrow['fire_rate']} cost={arrow['cost']}")
     placed = 0
     # 优先选路径中段（idx 5-15）
     mid_cells = sorted(near_path_cells, key=lambda c: abs(sum(c) - 10))
     for (x, y) in mid_cells:
         if s['gold'] >= arrow['cost']:
-            send_cmd(sock, {'type': 'build_tower', 'x': x, 'y': y, 'tower': 'arrow'})
+            send_cmd(sock, {'type': 'build_tower', 'x': x, 'y': y, 'tower': 'laser'})
             time.sleep(0.05)
             placed += 1
             if placed >= 5:
                 break
-    print(f"[tower] placed {placed} arrow towers near mid-path")
+    print(f"[tower] placed {placed} laser towers near mid-path")
 
     # 确认塔建好
     time.sleep(0.3)

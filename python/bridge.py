@@ -4,7 +4,15 @@ import json
 import os
 import time
 
-_BUILD = os.path.join(os.path.dirname(__file__), "..", "build")
+# dylib 路径：优先 TD_LIB_PATH 环境变量（Swift 启动时设置），
+# 否则开发模式默认 ../build（python/main.py 所在目录的回溯）。
+_BUILD = os.environ.get("TD_LIB_PATH") or os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "build"
+)
+# 排行榜数据库：优先 TD_SCORES_DB，否则开发模式默认 ../build/scores.db
+_DB_PATH = os.environ.get("TD_SCORES_DB") or os.path.join(_BUILD, "scores.db")
+# 音效输出目录
+_SFX_DIR = os.environ.get("TD_SFX_DIR") or _BUILD
 
 
 class NativeBridge:
@@ -87,7 +95,9 @@ class NativeBridge:
         return self._rr.rr_beep_to_wav(ctypes.c_float(freq), dur_ms, wav_path.encode("utf-8"))
 
     # ---- Go 层 ----
-    def lb_init(self, db_path):
+    def lb_init(self, db_path=None):
+        if db_path is None:
+            db_path = _DB_PATH
         if self._gr.gr_init(db_path.encode("utf-8")) != 0:
             raise RuntimeError("gr_init failed")
 
