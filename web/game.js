@@ -12,6 +12,7 @@
   let selectedTowerType = null;
   let selectedTowerCell = null; // {x, y} 选中的已建塔
   let mouseCell = null;
+  let lastSelKey = ''; // 节流 selected-tower-info 的 DOM 重设
 
   // ===== Swift 桥接 =====
   function sendCommand(cmd) {
@@ -24,10 +25,19 @@
   }
 
   // Swift 调用：传入 Python 推送的状态
+  // 用 rAF 合并多次 state 更新：30fps 推送 vs 60fps 渲染节拍，
+  // 避免 evaluateJavaScript completion 在主线程堆积导致 HUD 不更新
+  let renderScheduled = false;
   window.handleState = function (s) {
     state = s;
-    render();
-    updateHUD();
+    if (!renderScheduled) {
+      renderScheduled = true;
+      requestAnimationFrame(() => {
+        renderScheduled = false;
+        render();
+        updateHUD();
+      });
+    }
   };
 
   // Swift 调用：传入命令响应
@@ -214,25 +224,28 @@
       btnWave.disabled = true;
     }
 
-    // 选中塔信息
+    // 选中塔信息（只在 selectedTowerCell 真正改变时重设 innerHTML，避免 30Hz DOM reflow）
     const info = document.getElementById('selected-tower-info');
-    if (selectedTowerCell) {
-      const t = state.towers.find(t => t.x === selectedTowerCell.x && t.y === selectedTowerCell.y);
-      if (t) {
-        info.style.display = 'block';
-        const upCost = Math.round(t.spec ? 0 : 0); // cost from spec
-        info.innerHTML = '<div>' + t.name + ' Lv' + t.level + '</div>' +
-          '<div>伤害:' + Math.round(t.spec_dmg || t.damage || 0) + '</div>' +
-          '<div class="btn-row">' +
-          '<button onclick="window._upgrade()">升级</button>' +
-          '<button onclick="window._sell()">卖出</button>' +
-          '</div>';
+    const selKey = selectedTowerCell ? selectedTowerCell.x + ',' + selectedTowerCell.y : '';
+    if (selKey !== lastSelKey) {
+      lastSelKey = selKey;
+      if (selectedTowerCell) {
+        const t = state.towers.find(t => t.x === selectedTowerCell.x && t.y === selectedTowerCell.y);
+        if (t) {
+          info.style.display = 'block';
+          info.innerHTML = '<div>' + t.name + ' Lv' + t.level + '</div>' +
+            '<div>伤害:' + Math.round(t.spec_dmg || t.damage || 0) + '</div>' +
+            '<div class="btn-row">' +
+            '<button onclick="window._upgrade()">升级</button>' +
+            '<button onclick="window._sell()">卖出</button>' +
+            '</div>';
+        } else {
+          info.style.display = 'none';
+          selectedTowerCell = null;
+        }
       } else {
         info.style.display = 'none';
-        selectedTowerCell = null;
       }
-    } else {
-      info.style.display = 'none';
     }
 
     // 排行榜

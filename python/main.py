@@ -28,6 +28,7 @@ BUILD = os.path.join(ROOT, "build")
 
 
 class Tower:
+    fire_count = 0  # 诊断：总开火次数
     def __init__(self, x, y, spec):
         self.x = x
         self.y = y
@@ -83,6 +84,7 @@ class Enemy:
 
 
 class Projectile:
+    hit_count = 0  # 诊断：总命中次数
     def __init__(self, x, y, target_enemy, damage, color, splash=0):
         self.x = x
         self.y = y
@@ -325,8 +327,8 @@ class Game:
                 p.y += dy / dist * step
 
     def _cleanup(self):
-        self.enemies = [e for e in self.enemies if not (e.dead and True) or not e.reached_goal]
-        self.enemies = [e for e in self.enemies if not e.reached_goal]
+        # dead 或 reached_goal 的敌人都不再参与游戏，一并清理
+        self.enemies = [e for e in self.enemies if not e.dead and not e.reached_goal]
         self.projectiles = [p for p in self.projectiles if not p.dead]
 
     def submit_score(self, name):
@@ -422,7 +424,7 @@ def main():
     clients = []
     buf = {}
 
-    TARGET_FPS = 30
+    TARGET_FPS = 20  # 30→20：体感差异不可察觉，但 Swift dispatchToJS 任务数降 33%，避免主线程堆积
     last = time.monotonic()
     acc = 0.0
 
