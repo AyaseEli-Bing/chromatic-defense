@@ -1,0 +1,109 @@
+/* style.css — 塔防游戏暗色主题 */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  user-select: none;
+  overflow: hidden;
+}
+
+#app { display: flex; flex-direction: column; height: 100vh; }
+
+#hud {
+  display: flex;
+  gap: 24px;
+  padding: 8px 16px;
+  background: #16213e;
+  border-bottom: 1px solid #0f3460;
+  font-size: 14px;
+}
+.stat { display: flex; gap: 6px; align-items: center; }
+.stat .label { color: #8e8e8e; }
+.stat .value { font-weight: bold; color: #4ecca3; font-size: 16px; }
+
+#main { display: flex; flex: 1; overflow: hidden; }
+
+#game {
+  background: #0d1117;
+  cursor: crosshair;
+  image-rendering: pixelated;
+}
+
+#panel {
+  width: 200px;
+  padding: 10px;
+  background: #16213e;
+  border-left: 1px solid #0f3460;
+  overflow-y: auto;
+  font-size: 13px;
+}
+#panel h3 { color: #4ecca3; margin: 8px 0 4px; font-size: 13px; }
+
+#tower-buttons { display: flex; flex-direction: column; gap: 4px; }
+.tower-btn {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 8px; background: #1a1a2e; border: 1px solid #0f3460;
+  border-radius: 4px; cursor: pointer; color: #e0e0e0;
+  transition: background 0.15s;
+}
+.tower-btn:hover { background: #0f3460; }
+.tower-btn.selected { border-color: #4ecca3; background: #0f3460; }
+.tower-btn .cost { color: #ffd700; font-size: 12px; }
+.tower-btn.disabled { opacity: 0.4; cursor: not-allowed; }
+
+.action {
+  width: 100%; padding: 8px; margin: 4px 0;
+  background: #0f3460; border: 1px solid #4ecca3; border-radius: 4px;
+  color: #4ecca3; cursor: pointer; font-size: 13px;
+  transition: background 0.15s;
+}
+.action:hover { background: #1a5276; }
+
+#selected-tower-info {
+  margin-top: 6px; padding: 6px; background: #1a1a2e;
+  border-radius: 4px; font-size: 12px; display: none;
+}
+#selected-tower-info .btn-row { display: flex; gap: 4px; margin-top: 4px; }
+#selected-tower-info button {
+  flex: 1; padding: 4px; font-size: 11px;
+  background: #0f3460; border: 1px solid #4ecca3; border-radius: 3px;
+  color: #4ecca3; cursor: pointer;
+}
+
+#leaderboard { font-size: 12px; }
+#leaderboard .entry {
+  display: flex; justify-content: space-between;
+  padding: 2px 4px; border-bottom: 1px solid #0f3460;
+}
+#leaderboard .entry .rank { color: #ffd700; width: 20px; }
+#leaderboard .entry .nm { flex: 1; }
+#leaderboard .entry .sc { color: #4ecca3; }
+
+#flash {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  padding: 16px 32px; background: rgba(0,0,0,0.8);
+  border: 1px solid #4ecca3; border-radius: 8px;
+  font-size: 20px; font-weight: bold; color: #4ecca3;
+  pointer-events: none; opacity: 0; transition: opacity 0.3s;
+}
+#flash.show { opacity: 1; }
+
+#modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  display: flex; align-items: center; justify-content: center; }
+#modal.hidden { display: none; }
+.modal-content {
+  background: #16213e; padding: 24px; border-radius: 8px;
+  border: 1px solid #4ecca3; min-width: 300px; text-align: center;
+}
+.modal-content h3 { color: #4ecca3; margin-bottom: 12px; }
+.modal-content input {
+  width: 100%; padding: 8px; margin: 8px 0;
+  background: #1a1a2e; border: 1px solid #0f3460; border-radius: 4px;
+  color: #e0e0e0; font-size: 14px;
+}
+.modal-content button {
+  padding: 8px 24px; background: #0f3460; border: 1px solid #4ecca3;
+  border-radius: 4px; color: #4ecca3; cursor: pointer; margin: 4px;
+}

@@ -1,0 +1,25 @@
+# 构建产物
+build/
+rust/target/
+
+# 编译中间产物
+*.dylib
+*.o
+*.dSYM/
+
+# 运行时数据
+*.db
+*.wav
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+*.swp
+*~
+
+# IDE
+.vscode/
+.idea/

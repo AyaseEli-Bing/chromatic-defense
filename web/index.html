@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>塔防 · Chromatic Defense</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <div class="stat"><span class="label">金币</span><span id="gold" class="value">200</span></div>
+    <div class="stat"><span class="label">生命</span><span id="lives" class="value">20</span></div>
+    <div class="stat"><span class="label">波次</span><span id="wave" class="value">0/7</span></div>
+    <div class="stat"><span class="label">分数</span><span id="score" class="value">0</span></div>
+  </div>
+
+  <div id="main">
+    <canvas id="game" width="640" height="480"></canvas>
+
+    <div id="panel">
+      <h3>建塔</h3>
+      <div id="tower-buttons"></div>
+      <h3>操作</h3>
+      <button id="btn-wave" class="action">开始波次</button>
+      <button id="btn-lb" class="action">查看排行榜</button>
+      <div id="selected-tower-info"></div>
+      <h3>排行榜</h3>
+      <div id="leaderboard"></div>
+    </div>
+  </div>
+
+  <div id="flash"></div>
+
+  <div id="modal" class="hidden">
+    <div class="modal-content">
+      <h3 id="modal-title"></h3>
+      <div id="modal-body"></div>
+      <button id="modal-close">关闭</button>
+    </div>
+  </div>
+</div>
+<script src="game.js"></script>
+</body>
+</html>
