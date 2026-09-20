@@ -188,19 +188,75 @@
       const cx = e.x * CELL + CELL / 2;
       const cy = e.y * CELL + CELL / 2;
       const r = 8 * e.size;
-      ctx.fillStyle = e.color;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 1;
-      ctx.stroke();
+
+      // 飞行兵：上下浮动 + 两侧翅膀
+      if (e.flying) {
+        const bob = Math.sin(Date.now() / 200 + e.x) * 3; // 上下浮动
+        const fy = cy + bob;
+        // 阴影（地面投影，强调"飞行"）
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.beginPath();
+        ctx.ellipse(cx, cy + r + 4, r * 0.8, r * 0.3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        // 身体
+        ctx.fillStyle = e.color;
+        ctx.beginPath();
+        ctx.arc(cx, fy, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        // 翅膀（两个三角，随时间扇动）
+        const flap = Math.sin(Date.now() / 120) * 4;
+        ctx.fillStyle = 'rgba(136,221,255,0.7)';
+        ctx.beginPath();
+        ctx.moveTo(cx - r * 0.5, fy);
+        ctx.lineTo(cx - r * 2, fy - r * 0.8 - flap);
+        ctx.lineTo(cx - r * 0.5, fy + r * 0.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(cx + r * 0.5, fy);
+        ctx.lineTo(cx + r * 2, fy - r * 0.8 - flap);
+        ctx.lineTo(cx + r * 0.5, fy + r * 0.5);
+        ctx.closePath();
+        ctx.fill();
+      } else {
+        // 地面单位
+        ctx.fillStyle = e.color;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      // 重甲兵：外圈护盾环
+      if (e.shielded) {
+        ctx.strokeStyle = 'rgba(200,220,255,0.8)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath();
+        ctx.arc(cx, cy, r + 4, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // 医疗兵：绿色十字
+      if (e.healer) {
+        ctx.fillStyle = '#ffffff';
+        const cs = r * 0.6;
+        ctx.fillRect(cx - cs / 2, cy - cs * 1.2, cs, cs * 2.4);
+        ctx.fillRect(cx - cs * 1.2, cy - cs / 2, cs * 2.4, cs);
+      }
+
       // 血条
       const bw = 24, bh = 4;
       ctx.fillStyle = '#333';
       ctx.fillRect(cx - bw/2, cy - r - 8, bw, bh);
       ctx.fillStyle = e.hp / e.max_hp > 0.5 ? '#4ecca3' : (e.hp / e.max_hp > 0.25 ? '#ffd700' : '#e74c3c');
-      ctx.fillRect(cx - bw/2, cy - r - 8, bw * (e.hp / e.max_hp), bh);
+      ctx.fillRect(cx - bw/2, cy - r - 8, bw * Math.max(0, e.hp / e.max_hp), bh);
     }
 
     // 子弹

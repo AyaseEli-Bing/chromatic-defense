@@ -51,23 +51,40 @@ M.towers = {
 }
 
 -- 敌人类型
+-- 特性敌人设计（克制关系）：
+--   flyer    飞行   —— 只有射程 >= 4 的塔能命中（魔法塔/激光塔），箭塔/炮塔无效
+--   shielded 护盾   —— 单发伤害 < shield_threshold 时按 shield_reduction 减免
+--   healer   治疗   —— 定期为半径内友军回复 HP，不优先击杀会拖长战斗
+-- 注：新敌人数值为 [PLACEHOLDER]，需 playtest 后调优
 M.enemies = {
     {id="grunt",  name="小兵",   hp=30,  speed=1.0, reward=8,  color="#ff4444"},
     {id="runner", name="跑者",   hp=20,  speed=2.0, reward=12, color="#ffaa00"},
     {id="tank",   name="坦克",   hp=120, speed=0.5, reward=25, color="#8800ff"},
     {id="boss",   name="BOSS",   hp=500, speed=0.4, reward=200, color="#ff00ff", size=1.5},
+    -- [PLACEHOLDER] 飞行兵：箭塔/炮塔射程不足打不到，必须用魔法塔/激光塔防空
+    {id="flyer",    name="飞行兵", hp=40, speed=1.8, reward=15, color="#88ddff", size=0.9,
+     flying=true},
+    -- [PLACEHOLDER] 重甲兵：低单发伤害减半，需高单发伤害（激光塔/炮塔）破盾
+    {id="shielded", name="重甲兵", hp=60, speed=0.8, reward=20, color="#aabbcc", size=1.1,
+     shield_threshold=20, shield_reduction=0.5},
+    -- [PLACEHOLDER] 医疗兵：治疗半径 15 格内友军，优先击杀目标
+    {id="healer",   name="医疗兵", hp=50, speed=0.9, reward=25, color="#44ff88", size=1.0,
+     heal_interval=3.0, heal_amount=8, heal_radius=15},
 }
 
 -- 波次配置：每波指定敌人类型和数量
+-- 设计：8 波递进，逐波引入新机制（W3 飞行 / W5 护盾 / W6 治疗 / W8 综合终局）
+-- 注：波次数值为 [PLACEHOLDER]，需 playtest 验证难度曲线
 M.waves = {}
 local wave_defs = {
     {delay=3,  spawns={ {type="grunt", count=8,  interval=0.8} }},
     {delay=5,  spawns={ {type="grunt", count=10, interval=0.6}, {type="runner", count=3, interval=1.0} }},
-    {delay=5,  spawns={ {type="grunt", count=12, interval=0.5}, {type="runner", count=5, interval=0.7} }},
-    {delay=8,  spawns={ {type="tank",  count=4,  interval=2.0}, {type="grunt", count=10, interval=0.4} }},
-    {delay=8,  spawns={ {type="runner",count=10, interval=0.4}, {type="tank",  count=5, interval=1.5} }},
-    {delay=10, spawns={ {type="grunt", count=20, interval=0.3}, {type="tank", count=6, interval=1.2}, {type="runner", count=8, interval=0.5} }},
-    {delay=12, spawns={ {type="boss",  count=1,  interval=0}, {type="grunt", count=15, interval=0.4}, {type="tank", count=4, interval=1.5} }},
+    {delay=5,  spawns={ {type="flyer", count=5,  interval=0.8}, {type="grunt",  count=8,  interval=0.5} }},
+    {delay=8,  spawns={ {type="tank",  count=4,  interval=2.0}, {type="grunt",  count=10, interval=0.4} }},
+    {delay=8,  spawns={ {type="shielded", count=3, interval=2.5}, {type="runner", count=8, interval=0.4} }},
+    {delay=10, spawns={ {type="healer", count=2, interval=3.0}, {type="grunt",  count=15, interval=0.4} }},
+    {delay=12, spawns={ {type="flyer", count=6, interval=0.6}, {type="shielded", count=4, interval=2.0}, {type="tank", count=3, interval=1.5} }},
+    {delay=12, spawns={ {type="boss",  count=1,  interval=0}, {type="healer", count=2, interval=3.0}, {type="flyer", count=8, interval=0.5}, {type="shielded", count=3, interval=2.0} }},
 }
 
 -- 把 map 转成 grid 数组(1=障碍,0=可建塔) + 路径坐标列表

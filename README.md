@@ -4,7 +4,7 @@
 > 这个项目是**用 8 种编程语言一起写出来的 macOS 塔防游戏**——不是因为炫技（真的不是！），而是因为每种语言都有它最擅长的小脾气，让它们一起搭伙干活刚刚好 ✨
 > 看完觉得有意思？欢迎点个 ⭐ Star，喵喵会超级开心！
 
-![languages](https://img.shields.io/badge/languages-8-orange) ![platform](https://img.shields.io/badge/platform-macOS-blue) ![version](https://img.shields.io/badge/version-0.1.0--rc.1-yellow) ![license](https://img.shields.io/badge/license-MIT-green)
+![languages](https://img.shields.io/badge/languages-8-orange) ![platform](https://img.shields.io/badge/platform-macOS-blue) ![version](https://img.shields.io/badge/version-0.2.0--rc.1-yellow) ![license](https://img.shields.io/badge/license-MIT-green)
 
 📜 **本项目采用 MIT 许可证开源**——你可以自由地使用、修改、分发（包括商用），只需保留版权声明即可。详情见 [LICENSE](LICENSE)。
 
@@ -13,10 +13,25 @@
 经典塔防：在路径旁建塔阻止敌人到达终点。
 
 - **4 种塔**：箭塔（单体高频）、炮塔（溅射）、魔法塔（减速）、**激光塔（最高伤害！青色激光炮，远程轰杀）**
-- **3 种敌人**：小兵（快弱）、重甲（慢强）、飞龙（高速）
-- **8 波递进难度**，每波敌人组合不同
+- **6 种敌人**：小兵（快弱）、跑者（高速）、重甲（慢强）、BOSS（血厚）+ **3 种特性敌人**
+- **8 波递进难度**，逐波引入新机制
 - 塔可升级（3 级）可卖出（返还 60%）
 - 本地 SQLite 排行榜
+
+### 👾 特性敌人与克制关系
+
+这一版加了 3 种"必须换塔才能打"的敌人，逼你混搭阵容（无脑堆一种塔会被突破）：
+
+| 敌人 | 机制 | 克制关系 |
+|------|------|---------|
+| 🦋 **飞行兵** | 飞行单位 | **只有射程 ≥ 4 的塔能打到**——箭塔(3)/炮塔(2.5) 完全无效，必须用魔法塔/激光塔防空 |
+| 🛡️ **重甲兵** | 护盾 | **单发伤害 < 20 减半**——箭塔8→4、魔法塔15→7.5 被削弱；激光塔30/炮塔25 全额穿透 |
+| ✚ **医疗兵** | 治疗 | 每 3 秒治疗 15 格内友军 +8 HP——不优先点杀会拖长战斗，炮塔溅射可顺带清理 |
+
+**塔的 DPS/金币性价比**（越低越贵）：箭塔 0.27 > 炮塔 0.21 > 魔法塔 0.125 > 激光塔 0.1
+—— 激光塔伤害最高但性价比最低，**"全堆激光塔"并不是最优解**，需要按敌人组合调整。
+
+<!-- 数值均为 [PLACEHOLDER]，需 playtest 后调优 -->
 
 ## 🏗️ 架构：8 种语言各司其职
 

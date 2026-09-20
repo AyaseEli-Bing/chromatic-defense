@@ -75,12 +75,32 @@ class Enemy:
         self.slow_factor = 1.0
         self.dead = False
         self.reached_goal = False
+        # ---- 特性敌人字段 ----
+        self.flying = bool(spec.get("flying", False))
+        self.shield_threshold = spec.get("shield_threshold", 0)
+        self.shield_reduction = spec.get("shield_reduction", 1.0)
+        self.heal_interval = spec.get("heal_interval", 0)
+        self.heal_amount = spec.get("heal_amount", 0)
+        self.heal_radius = spec.get("heal_radius", 0)
+        self.heal_timer = self.heal_interval
 
     def to_dict(self):
         return {
             "x": self.x, "y": self.y, "hp": self.hp, "max_hp": self.max_hp,
             "color": self.color, "size": self.size, "dead": self.dead,
+            # 特性标记：供 JS 渲染不同外观
+            "flying": self.flying,
+            "shielded": self.shield_threshold > 0,
+            "healer": self.heal_amount > 0,
         }
+
+    def take_damage(self, raw_damage):
+        """受击结算：护盾单位为低单发伤害提供减免。返回实际伤害。"""
+        dmg = raw_damage
+        if self.shield_threshold > 0 and raw_damage < self.shield_threshold:
+            dmg = raw_damage * self.shield_reduction
+        self.hp -= dmg
+        return dmg
 
 
 class Projectile:
@@ -115,8 +135,8 @@ class Game:
         self.wave_defs = level["wave_defs"]
         self.start = (level["start"]["x"] - 1, level["start"]["y"] - 1)
         self.goal = (level["goal"]["x"] - 1, level["goal"]["y"] - 1)
-        self.start_gold = level["start_gold"]
-        self.start_lives = level["start_lives"]
+        self.start_gold = int(os.environ.get("TD_START_GOLD", level["start_gold"]))
+        self.start_lives = int(os.environ.get("TD_START_LIVES", level["start_lives"]))
 
         # A* 计算路径
         grid_flat = []
@@ -267,6 +287,23 @@ class Game:
             if reached:
                 e.target_idx = self.bridge.next_target(e.target_idx, len(e.path))
 
+        # 医疗兵：定期为半径内友军回复 HP（不治疗自己）
+        for e in self.enemies:
+            if e.dead or e.reached_goal or e.heal_amount <= 0 or e.heal_interval <= 0:
+                continue
+            e.heal_timer -= dt
+            if e.heal_timer <= 0:
+                e.heal_timer = e.heal_interval
+                r2 = e.heal_radius ** 2
+                for ally in self.enemies:
+                    if ally is e or ally.dead or ally.reached_goal:
+                        continue
+                    if ally.hp >= ally.max_hp:
+                        continue
+                    d2 = (ally.x - e.x) ** 2 + (ally.y - e.y) ** 2
+                    if d2 <= r2:
+                        ally.hp = min(ally.hp + e.heal_amount, ally.max_hp)
+
     def _update_towers(self, dt):
         for t in self.towers:
             if t.cooldown > 0:
@@ -276,6 +313,9 @@ class Game:
             best_dist = t.range ** 2
             for e in self.enemies:
                 if e.dead or e.reached_goal:
+                    continue
+                # 飞行单位：只有射程 >= 4 的塔能锁定（箭塔/炮塔打不到空中）
+                if e.flying and t.range < 4:
                     continue
                 d2 = (e.x - t.x) ** 2 + (e.y - t.y) ** 2
                 if d2 <= best_dist:
@@ -305,7 +345,7 @@ class Game:
             if dist <= step:
                 # 命中：击中给即时反馈分数，击杀给大额奖励
                 self.score += 1  # 击中 +1（每次打中都有反馈，激励高 DPS）
-                p.target.hp -= p.damage
+                p.target.take_damage(p.damage)  # 含护盾减免结算
                 if p.target.hp <= 0 and not p.target.dead:
                     p.target.dead = True
                     self.gold += p.target.reward
@@ -317,7 +357,7 @@ class Game:
                             continue
                         d2 = (e.x - p.target.x) ** 2 + (e.y - p.target.y) ** 2
                         if d2 <= p.splash ** 2:
-                            e.hp -= p.damage * 0.5
+                            e.take_damage(p.damage * 0.5)  # 溅射同样算护盾减免
                             if e.hp <= 0 and not e.dead:
                                 e.dead = True
                                 self.gold += e.reward

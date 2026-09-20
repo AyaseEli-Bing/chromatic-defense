@@ -44,13 +44,18 @@ pub extern "C" fn rr_enemy_step(
     }
 }
 
-/// 选择下一个路径目标节点（简单策略：朝终点方向选最近的未走节点）
+/// 选择下一个路径目标节点。
 /// path: 路径坐标数组 [x0,y0,x1,y1,...]，path_len: 节点数
 /// cur_idx: 当前目标节点索引
-/// 返回新的目标索引
+/// 返回下一个节点索引；**若已越过最后节点则返回 path_len**，
+/// 调用方据此判定"敌人已到达终点"（用 `new_idx >= path_len` 检查）。
+///
+/// 注意：早期实现用 `if cur_idx+1 < path_len { cur_idx+1 } else { path_len-1 }`，
+/// 会让敌人到达末节点后 target_idx 永远卡在 path_len-1，导致 reached_goal
+/// 永不触发（敌人卡在终点、不扣 lives、波次无法推进）。此处已修正。
 #[no_mangle]
-pub extern "C" fn rr_next_target(cur_idx: c_int, path_len: c_int) -> c_int {
-    if cur_idx + 1 < path_len { cur_idx + 1 } else { path_len - 1 }
+pub extern "C" fn rr_next_target(cur_idx: c_int, _path_len: c_int) -> c_int {
+    cur_idx + 1
 }
 
 /// 合成方波 beep 音效并写入 WAV 文件。
