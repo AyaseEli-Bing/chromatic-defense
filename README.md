@@ -4,9 +4,14 @@
 > 这个项目是**用 8 种编程语言一起写出来的 macOS 塔防游戏**——不是因为炫技（真的不是！），而是因为每种语言都有它最擅长的小脾气，让它们一起搭伙干活刚刚好 ✨
 > 看完觉得有意思？欢迎点个 ⭐ Star，喵喵会超级开心！
 
-![languages](https://img.shields.io/badge/languages-8-orange) ![platform](https://img.shields.io/badge/platform-macOS-blue) ![version](https://img.shields.io/badge/version-0.2.0--rc.1-yellow) ![license](https://img.shields.io/badge/license-MIT-green)
+![languages](https://img.shields.io/badge/languages-8-orange) ![platform](https://img.shields.io/badge/platform-macOS-blue) ![version](https://img.shields.io/badge/version-1.0.0-brightgreen) ![license](https://img.shields.io/badge/license-MIT-green)
 
 📜 **本项目采用 MIT 许可证开源**——你可以自由地使用、修改、分发（包括商用），只需保留版权声明即可。详情见 [LICENSE](LICENSE)。
+
+> ### 🎉 v1.0.0 正式版
+> 首个正式版本！包含完整玩法：**4 种塔 × 6 种敌人（含 3 种特性敌人）× 8 波递进关卡**，
+> 塔升级/卖出、无限金币、SQLite 排行榜、合成音效，以及可双击运行的 `.app`。
+> 数值仍在持续调优中（标注 `[PLACEHOLDER]`），欢迎反馈手感。
 
 ## 🎮 玩法
 

@@ -53,9 +53,9 @@ cat > "$APP/Contents/Info.plist" <<'EOF'
   <key>CFBundleIdentifier</key>
   <string>com.ayaseeli-bing.chromaticdefense</string>
   <key>CFBundleVersion</key>
-  <string>0.2.0-rc.1</string>
+  <string>1.0.0</string>
   <key>CFBundleShortVersionString</key>
-  <string>0.2.0-rc.1</string>
+  <string>1.0.0</string>
   <key>CFBundlePackageType</key>
   <string>APPL</string>
   <key>CFBundleSignature</key>
