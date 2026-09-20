@@ -52,7 +52,7 @@ def main():
     near_path_cells -= path_points
     print(f"[path] {len(near_path_cells)} empty cells adjacent to path")
 
-    # 在路径中段附近建 5 个激光塔（v0.1.0 测试新增塔）
+    # 在路径中段附近建 5 个激光塔（v0.1.0-rc.1 测试新增塔）
     arrow = next(sp for sp in s['tower_specs'] if sp['id'] == 'laser')
     print(f"[tower] laser: damage={arrow['damage']} range={arrow['range']} fire_rate={arrow['fire_rate']} cost={arrow['cost']}")
     placed = 0

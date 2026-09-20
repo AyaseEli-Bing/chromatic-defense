@@ -1,14 +1,18 @@
-# 🏰 Chromatic Defense · 塔防游戏
+# 🏰 Chromatic Defense · 塔防小游戏 🌈
 
-> 8 种语言混搭的 macOS 原生塔防游戏。不是"为了混而混"——每种语言都承担了它最擅长的职责，通过明确的接口契约协作，最终编译成一个可运行的 App。
+> 嗨呀！这里是一只会写代码也喜欢玩游戏的喵 😺
+> 这个项目是**用 8 种编程语言一起写出来的 macOS 塔防游戏**——不是因为炫技（真的不是！），而是因为每种语言都有它最擅长的小脾气，让它们一起搭伙干活刚刚好 ✨
+> 看完觉得有意思？欢迎点个 ⭐ Star，喵喵会超级开心！
 
-![languages](https://img.shields.io/badge/languages-8-orange) ![platform](https://img.shields.io/badge/platform-macOS-blue) ![version](https://img.shields.io/badge/version-0.0.1-green)
+![languages](https://img.shields.io/badge/languages-8-orange) ![platform](https://img.shields.io/badge/platform-macOS-blue) ![version](https://img.shields.io/badge/version-0.1.0--rc.1-yellow) ![license](https://img.shields.io/badge/license-MIT-green)
+
+📜 **本项目采用 MIT 许可证开源**——你可以自由地使用、修改、分发（包括商用），只需保留版权声明即可。详情见 [LICENSE](LICENSE)。
 
 ## 🎮 玩法
 
 经典塔防：在路径旁建塔阻止敌人到达终点。
 
-- **3 种塔**：箭塔（单体高频）、炮塔（溅射）、魔法塔（减速）
+- **4 种塔**：箭塔（单体高频）、炮塔（溅射）、魔法塔（减速）、**激光塔（最高伤害！青色激光炮，远程轰杀）**
 - **3 种敌人**：小兵（快弱）、重甲（慢强）、飞龙（高速）
 - **8 波递进难度**，每波敌人组合不同
 - 塔可升级（3 级）可卖出（返还 60%）
